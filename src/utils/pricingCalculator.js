@@ -3,21 +3,41 @@ import {
   pricingRules,
   multiplicateursExperience,
   multiplicateursClientsPassés,
-  multiplicateursTypeOffre,
   multiplicateursTransformation,
   multiplicateursZone,
   multiplicateursCible,
   servicesValeur,
-  alertes,
-  philosophieFA
+  alertes
 } from '../data/pricingConfig';
 
 /**
- * Calcule le prix plancher basé sur le temps passé
- * Prix plancher = Temps total × Valeur horaire
+ * Convertit l'intervalle de temps en valeur moyenne
  */
-export function calculerPrixPlancher(tempsParClient, tauxHoraire) {
-  return tempsParClient * tauxHoraire;
+export function getTempsParClientMoyen(intervalle) {
+  const mapping = {
+    '5-10': 7.5,
+    '10-15': 12.5,
+    '15-20': 17.5,
+    '20-30': 25,
+    '30-40': 35,
+    '40+': 45
+  };
+  return mapping[intervalle] || 20;
+}
+
+/**
+ * Qualifie automatiquement le type d'offre basé sur les services
+ */
+export function qualifierOffre(services) {
+  if (!services || services.length === 0) return 'specifique';
+
+  // Services clés pour une offre complète
+  const servicesComplets = ['strategie', 'creation_contenu', 'publication', 'management', 'reporting'];
+  const servicesPresents = servicesComplets.filter(s => services.includes(s));
+
+  if (servicesPresents.length >= 4) return 'complete';
+  if (servicesPresents.length >= 2) return 'partielle';
+  return 'specifique';
 }
 
 /**
@@ -75,10 +95,7 @@ export function identifierZoneMarche(typeOffre, niveauExperience, transformation
     return { min: 450, max: 800, label: 'Offre partielle' };
   }
 
-  // Offre complète
-  if (niveauExperience === 'experte' && transformation === 'forte') {
-    return fourchettesMarche.expert;
-  }
+  // Offre complète - maximum 1500€
   if (niveauExperience === 'experte' || transformation === 'forte') {
     return fourchettesMarche.premium;
   }
@@ -97,31 +114,35 @@ export function calculerPricing(answers) {
     prixObjectif: 0,
     prixMinimum: 0,
     prixIdeal: 0,
-    prixAmbitieux: 0,
+    prixReve: 0,
     prixRecommande: 0,
     zoneMarche: null,
+    typeOffreCalcule: '',
     alertes: [],
     justifications: [],
     phraseAnnonce: ''
   };
 
-  // 1. Prix plancher (temps × taux horaire)
-  const tempsParClient = parseInt(answers.temps_par_client) || 20;
-  const tauxHoraire = parseInt(answers.taux_horaire_souhaite) || 40;
-  resultat.prixPlancher = calculerPrixPlancher(tempsParClient, tauxHoraire);
+  // 1. Qualifier automatiquement le type d'offre
+  const typeOffre = qualifierOffre(answers.services_inclus);
+  resultat.typeOffreCalcule = typeOffre;
 
   // 2. Prix objectif (basé sur objectif financier)
   const objectifNet = parseInt(answers.objectif_mensuel_net) || 2000;
   const nombreClientsMax = answers.nombre_clients_max || '3';
   resultat.prixObjectif = calculerPrixObjectif(objectifNet, nombreClientsMax);
 
-  // 3. Identifier la zone de marché
-  const typeOffre = answers.type_offre || 'complete';
+  // 3. Calculer le prix plancher basé sur le temps (avec taux horaire moyen de 45€)
+  const tempsParClient = getTempsParClientMoyen(answers.temps_par_client);
+  const tauxHoraireMoyen = 45; // Taux horaire moyen CM France
+  resultat.prixPlancher = Math.round(tempsParClient * tauxHoraireMoyen);
+
+  // 4. Identifier la zone de marché
   const niveauExperience = answers.niveau_experience || 'debutante';
   const transformation = answers.niveau_transformation || 'moyenne';
   resultat.zoneMarche = identifierZoneMarche(typeOffre, niveauExperience, transformation);
 
-  // 4. Calculer le prix de base avec multiplicateurs
+  // 5. Calculer le prix de base avec multiplicateurs
   let prixBase = resultat.zoneMarche.min;
 
   // Multiplicateur expérience
@@ -151,7 +172,7 @@ export function calculerPricing(answers) {
   const bonusServices = calculerValeurServices(answers.services_inclus) * 0.1;
   prixBase += bonusServices;
 
-  // 5. Calculer les 3 prix
+  // 6. Calculer les 3 prix
   resultat.prixMinimum = Math.round(Math.max(
     resultat.prixPlancher,
     resultat.prixObjectif * 0.8,
@@ -159,22 +180,23 @@ export function calculerPricing(answers) {
   ));
 
   resultat.prixIdeal = Math.round(prixBase);
-  resultat.prixAmbitieux = Math.round(prixBase * 1.3);
+  resultat.prixReve = Math.round(prixBase * 1.25);
 
-  // 6. Contraindre dans la zone de marché (sauf expert)
-  if (niveauExperience !== 'experte' || transformation !== 'forte') {
-    resultat.prixIdeal = Math.min(resultat.prixIdeal, resultat.zoneMarche.max);
-    resultat.prixAmbitieux = Math.min(resultat.prixAmbitieux, resultat.zoneMarche.max * 1.1);
-  }
+  // 7. Plafonner tous les prix à 1500€ maximum
+  const PRIX_MAX = pricingRules.MAXIMUM_PRIX;
+  resultat.prixMinimum = Math.min(resultat.prixMinimum, PRIX_MAX);
+  resultat.prixIdeal = Math.min(resultat.prixIdeal, PRIX_MAX);
+  resultat.prixReve = Math.min(resultat.prixReve, PRIX_MAX);
 
-  // Assurer que prix minimum < prix idéal < prix ambitieux
+  // Assurer que prix minimum < prix idéal < prix rêvé
   resultat.prixIdeal = Math.max(resultat.prixIdeal, resultat.prixMinimum);
-  resultat.prixAmbitieux = Math.max(resultat.prixAmbitieux, resultat.prixIdeal);
+  resultat.prixReve = Math.max(resultat.prixReve, resultat.prixIdeal);
 
-  // 7. Prix recommandé (juste milieu entre idéal et ambitieux)
-  resultat.prixRecommande = Math.round((resultat.prixIdeal + resultat.prixAmbitieux) / 2);
+  // 8. Prix recommandé (juste milieu entre idéal et rêvé)
+  resultat.prixRecommande = Math.round((resultat.prixIdeal + resultat.prixReve) / 2);
+  resultat.prixRecommande = Math.min(resultat.prixRecommande, PRIX_MAX);
 
-  // 8. Vérifications et alertes
+  // 9. Vérifications et alertes
   // Offre complète sous 750€
   if (typeOffre === 'complete' && resultat.prixRecommande < pricingRules.MINIMUM_OFFRE_COMPLETE) {
     resultat.prixMinimum = pricingRules.MINIMUM_OFFRE_COMPLETE;
@@ -199,10 +221,10 @@ export function calculerPricing(answers) {
     resultat.alertes.push(alertes.decalagePosture);
   }
 
-  // 9. Justifications
-  resultat.justifications = genererJustifications(answers, resultat);
+  // 10. Justifications
+  resultat.justifications = genererJustifications(answers, resultat, typeOffre);
 
-  // 10. Phrase d'annonce
+  // 11. Phrase d'annonce
   resultat.phraseAnnonce = genererPhraseAnnonce(transformation, answers.description_transformation);
 
   return resultat;
@@ -211,7 +233,7 @@ export function calculerPricing(answers) {
 /**
  * Génère les justifications du prix
  */
-function genererJustifications(answers, resultat) {
+function genererJustifications(answers, resultat, typeOffre) {
   const justifications = [];
 
   // Niveau d'expérience
@@ -224,11 +246,11 @@ function genererJustifications(answers, resultat) {
     `Ton niveau d'expérience (${niveauLabels[answers.niveau_experience] || 'non précisé'}) justifie ce positionnement.`
   );
 
-  // Type d'offre et transformation
+  // Type d'offre qualifié automatiquement et transformation
   const typeLabels = {
-    complete: 'complète',
-    partielle: 'partielle',
-    specifique: 'ultra spécifique'
+    complete: 'complète (accompagnement 360°)',
+    partielle: 'partielle (plusieurs services clés)',
+    specifique: 'spécifique (mission ciblée)'
   };
   const transfoLabels = {
     faible: 'faible',
@@ -236,7 +258,7 @@ function genererJustifications(answers, resultat) {
     forte: 'forte'
   };
   justifications.push(
-    `Ton offre est ${typeLabels[answers.type_offre] || 'non précisée'} et apporte une transformation ${transfoLabels[answers.niveau_transformation] || 'non précisée'}.`
+    `Ton offre est qualifiée comme ${typeLabels[typeOffre] || 'non précisée'} avec une transformation ${transfoLabels[answers.niveau_transformation] || 'non précisée'}.`
   );
 
   // Marché
@@ -246,7 +268,7 @@ function genererJustifications(answers, resultat) {
 
   // Prix plancher
   justifications.push(
-    `Ce prix respecte ton prix plancher (${resultat.prixPlancher}€) et ta posture professionnelle.`
+    `Ce prix respecte ton prix plancher estimé (${resultat.prixPlancher}€) basé sur le temps investi.`
   );
 
   return justifications;

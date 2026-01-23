@@ -8,12 +8,14 @@ export const pricingRules = {
   // Taux URSSAF pour auto-entrepreneur (environ 27%)
   TAUX_URSSAF: 0.27,
 
+  // Prix maximum absolu
+  MAXIMUM_PRIX: 1500,
+
   // Fourchettes de prix marché France (prestations CM mensuelles)
   fourchettesMarche: {
     entreeDeGamme: { min: 750, max: 950, label: 'Entrée de gamme' },
     moyenne: { min: 950, max: 1200, label: 'Moyenne marché' },
-    premium: { min: 1300, max: 1500, label: 'Haut de marché' },
-    expert: { min: 1500, max: 2500, label: 'Expert / Offre 360°' }
+    premium: { min: 1300, max: 1500, label: 'Haut de marché' }
   },
 
   // Exceptions autorisant un prix < 750€

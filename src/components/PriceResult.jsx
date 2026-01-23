@@ -1,5 +1,5 @@
 import React from 'react';
-import { formatPrix, getPhilosophieAleatoire } from '../utils/pricingCalculator';
+import { formatPrix } from '../utils/pricingCalculator';
 
 function PriceResult({ result }) {
   if (!result) return null;
@@ -23,9 +23,9 @@ function PriceResult({ result }) {
         </div>
 
         <div className="price-card ambitieux">
-          <span className="price-label">Prix ambitieux</span>
-          <span className="price-sublabel">(realiste aujourd'hui)</span>
-          <span className="price-value">{formatPrix(result.prixAmbitieux)}</span>
+          <span className="price-label">Prix rêvé</span>
+          <span className="price-sublabel">(ton objectif)</span>
+          <span className="price-value">{formatPrix(result.prixReve)}</span>
         </div>
       </div>
 
@@ -87,12 +87,6 @@ function PriceResult({ result }) {
         </blockquote>
       </div>
 
-      {/* Philosophie FA */}
-      <div className="philosophy-section">
-        <blockquote className="philosophy-quote">
-          {getPhilosophieAleatoire()}
-        </blockquote>
-      </div>
     </div>
   );
 }

@@ -114,21 +114,7 @@ export const questions = [
       { value: 'tunnel', label: 'Création de tunnel de vente' }
     ],
     multiple: true,
-    required: true,
-    helpText: 'Plus ton offre est complète, plus elle a de valeur.'
-  },
-  {
-    id: 'type_offre',
-    section: 'offre',
-    type: 'radio',
-    question: 'Comment qualifierais-tu ton offre ?',
-    options: [
-      { value: 'complete', label: 'Complète & clé en main (accompagnement 360°)' },
-      { value: 'partielle', label: 'Partielle (exécution ou opérationnel uniquement)' },
-      { value: 'specifique', label: 'Ultra spécifique (montage, posts, support ponctuel)' }
-    ],
-    required: true,
-    helpText: 'Une offre complète ne peut JAMAIS être pricée en dessous de 750€.'
+    required: true
   },
   {
     id: 'cible_clients',
@@ -174,8 +160,7 @@ export const questions = [
         description: 'Vraie transformation business : visibilité, clients générés, CA en hausse, gain de temps majeur'
       }
     ],
-    required: true,
-    helpText: 'On vend une TRANSFORMATION, pas des heures. Plus la transformation est importante, plus le prix doit l\'être.'
+    required: true
   },
   {
     id: 'description_transformation',
@@ -194,24 +179,18 @@ export const questions = [
     id: 'temps_par_client',
     section: 'piliers',
     sectionTitle: 'Les 4 Piliers du Pricing',
-    type: 'number',
-    question: 'Combien d\'heures par mois consacres-tu en moyenne à UN client ?',
-    min: 1,
-    max: 160,
-    unit: 'heures',
+    type: 'dropdown',
+    question: 'Combien de temps un client te prend par mois environ ?',
+    options: [
+      { value: '5-10', label: '5 à 10 heures' },
+      { value: '10-15', label: '10 à 15 heures' },
+      { value: '15-20', label: '15 à 20 heures' },
+      { value: '20-30', label: '20 à 30 heures' },
+      { value: '30-40', label: '30 à 40 heures' },
+      { value: '40+', label: 'Plus de 40 heures' }
+    ],
     required: true,
     helpText: 'Inclus : création, publication, suivi, calls, reporting...'
-  },
-  {
-    id: 'taux_horaire_souhaite',
-    section: 'piliers',
-    type: 'number',
-    question: 'Quel est ton taux horaire minimum souhaité ?',
-    min: 15,
-    max: 200,
-    unit: '€/h',
-    required: true,
-    helpText: 'Le taux horaire moyen d\'une CM en France est entre 35€ et 60€/h.'
   },
   {
     id: 'objectif_mensuel_net',
@@ -276,7 +255,7 @@ export const sections = [
   {
     id: 'transformation',
     title: 'Transformation Apportée',
-    description: 'On vend une TRANSFORMATION, pas des heures ni des tâches.'
+    description: 'Décris l\'impact que tu as sur le business de tes clients.'
   },
   {
     id: 'piliers',
