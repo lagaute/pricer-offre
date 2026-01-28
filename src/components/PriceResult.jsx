@@ -9,16 +9,24 @@ function PriceResult({ result, userPrices }) {
   const prixIdealUser = parseInt(userPrices?.prix_ideal_utilisateur) || 800;
   const prixAmbitieuxUser = parseInt(userPrices?.prix_ambitieux_utilisateur) || 1200;
 
+  // S'assurer que les prix utilisateur sont cohérents
+  const minPrice = Math.min(prixMiniUser, prixIdealUser, prixAmbitieuxUser);
+  const maxPrice = Math.max(prixMiniUser, prixIdealUser, prixAmbitieuxUser);
+  const midPrice = prixIdealUser;
+
+  // Calculer la position du marqueur idéal (proportionnelle)
+  const idealMarkerPosition = maxPrice > minPrice
+    ? ((midPrice - minPrice) / (maxPrice - minPrice)) * 100
+    : 50;
+
   // Calculer la position du curseur (prix calculé par rapport aux prix utilisateur)
   const calculateCursorPosition = () => {
     const prixCalcule = result.prixRecommande;
-    const min = prixMiniUser;
-    const max = prixAmbitieuxUser;
 
-    if (prixCalcule <= min) return 0;
-    if (prixCalcule >= max) return 100;
+    if (prixCalcule <= minPrice) return 0;
+    if (prixCalcule >= maxPrice) return 100;
 
-    return ((prixCalcule - min) / (max - min)) * 100;
+    return ((prixCalcule - minPrice) / (maxPrice - minPrice)) * 100;
   };
 
   const cursorPosition = calculateCursorPosition();
@@ -26,11 +34,11 @@ function PriceResult({ result, userPrices }) {
   // Déterminer le message selon la position
   const getPositionMessage = () => {
     const prixCalcule = result.prixRecommande;
-    if (prixCalcule < prixMiniUser) {
+    if (prixCalcule < minPrice) {
       return { text: 'En dessous de ton minimum', color: '#e53e3e' };
-    } else if (prixCalcule < prixIdealUser) {
+    } else if (prixCalcule < midPrice) {
       return { text: 'Entre ton minimum et ton idéal', color: '#ed8936' };
-    } else if (prixCalcule < prixAmbitieuxUser) {
+    } else if (prixCalcule < maxPrice) {
       return { text: 'Entre ton idéal et ton ambitieux', color: '#48bb78' };
     } else {
       return { text: 'Au-dessus de ton prix ambitieux !', color: '#38a169' };
@@ -58,17 +66,17 @@ function PriceResult({ result, userPrices }) {
             <div className="price-marker mini" style={{ left: '0%' }}>
               <span className="marker-line"></span>
               <span className="marker-label">Mini</span>
-              <span className="marker-value">{formatPrix(prixMiniUser)}</span>
+              <span className="marker-value">{formatPrix(minPrice)}</span>
             </div>
-            <div className="price-marker ideal" style={{ left: '50%' }}>
+            <div className="price-marker ideal" style={{ left: `${idealMarkerPosition}%` }}>
               <span className="marker-line"></span>
               <span className="marker-label">Idéal</span>
-              <span className="marker-value">{formatPrix(prixIdealUser)}</span>
+              <span className="marker-value">{formatPrix(midPrice)}</span>
             </div>
             <div className="price-marker ambitieux" style={{ left: '100%' }}>
               <span className="marker-line"></span>
               <span className="marker-label">Ambitieux</span>
-              <span className="marker-value">{formatPrix(prixAmbitieuxUser)}</span>
+              <span className="marker-value">{formatPrix(maxPrice)}</span>
             </div>
 
             {/* Curseur du prix calculé */}
@@ -126,28 +134,11 @@ function PriceResult({ result, userPrices }) {
         </ul>
       </div>
 
-      {/* Zone de marché */}
-      <div className="market-info">
-        <h3>Zone de marche</h3>
-        <p>
-          <strong>{result.zoneMarche.label}</strong> : {formatPrix(result.zoneMarche.min)} - {formatPrix(result.zoneMarche.max)}
-        </p>
-      </div>
-
-      {/* Calculs détaillés */}
-      <div className="calculations-section">
-        <h3>Details des calculs</h3>
-        <div className="calculation-row">
-          <span>Prix minimum pour objectif de CA</span>
-          <span>{formatPrix(result.prixObjectif)}</span>
-        </div>
-      </div>
-
       {/* Phrase d'annonce */}
       <div className="phrase-section">
         <h3>Phrase pour annoncer ton prix</h3>
         <blockquote className="phrase-annonce">
-          "{result.phraseAnnonce}"
+          "Tu ne paies pas mes heures de travail, tu paies la transformation de ton business."
         </blockquote>
       </div>
 

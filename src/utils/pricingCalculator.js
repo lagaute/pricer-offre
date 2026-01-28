@@ -103,7 +103,53 @@ export function identifierZoneMarche(typeOffre, niveauExperience, transformation
 }
 
 /**
+ * Évalue le background (formations, certifications)
+ */
+function evaluerBackground(background, niveauExperience) {
+  if (!background || background.length === 0) return 1.0;
+
+  // Certifications "vendables" qui comptent même pour les seniors
+  const certificationsPremium = ['certification', 'grande_ecole', 'ecole_commerce'];
+  const hasCertificationPremium = background.some(b => certificationsPremium.includes(b));
+
+  // Pour les débutantes, le background compte beaucoup (c'est leur expérience)
+  if (niveauExperience === 'debutante') {
+    if (background.includes('formation_cm') || hasCertificationPremium) return 1.08;
+    if (background.length >= 2) return 1.04;
+    return 1.0;
+  }
+
+  // Pour les intermédiaires, compte moyennement
+  if (niveauExperience === 'intermediaire') {
+    if (hasCertificationPremium) return 1.04;
+    return 1.0;
+  }
+
+  // Pour les expertes, seules les certifications premium comptent un peu
+  if (hasCertificationPremium) return 1.02;
+  return 1.0;
+}
+
+/**
+ * Calcule le bonus services pondéré par l'expérience
+ * Un débutant avec plein de services = qualité moindre
+ */
+function calculerBonusServicesPondere(services, niveauExperience) {
+  const valeurBrute = calculerValeurServices(services);
+
+  // Pondération selon l'expérience
+  const ponderations = {
+    debutante: 0.02,     // Services comptent peu (qualité moindre)
+    intermediaire: 0.04, // Services comptent moyennement
+    experte: 0.06        // Services comptent plus (qualité garantie)
+  };
+
+  return valeurBrute * (ponderations[niveauExperience] || 0.03);
+}
+
+/**
  * Calcul principal du pricing - Algorithme complet
+ * Priorités: 1. Expérience+Résultats 2. Transformation 3. Services (pondérés) 4. Type client 5. Background
  */
 export function calculerPricing(answers) {
   const resultat = {
@@ -137,36 +183,55 @@ export function calculerPricing(answers) {
   const transformation = answers.niveau_transformation || 'moyenne';
   resultat.zoneMarche = identifierZoneMarche(typeOffre, niveauExperience, transformation);
 
-  // 5. Calculer le prix de base avec multiplicateurs
+  // 5. Calculer le prix de base
   // Base = 750€ pour offre complète, ajusté par type d'offre
   const bases = { complete: 750, partielle: 450, specifique: 300 };
   let prixBase = bases[typeOffre] || 750;
 
-  // Multiplicateur expérience (FACTEUR PRINCIPAL)
-  prixBase *= multiplicateursExperience[niveauExperience] || 1.0;
+  // ========== CRITÈRE 1: EXPÉRIENCE + RÉSULTATS (LE PLUS IMPORTANT) ==========
+  // L'expérience avec des résultats significatifs est gage de qualité
+  const preuveSociale = evaluerPreuveSociale(answers.resultats_mesurables);
+  const nombreClients = answers.nombre_clients || 'aucun';
 
-  // Multiplicateur transformation (FACTEUR CLÉ)
+  // Multiplicateur expérience de base
+  let multiplicateurExperienceTotal = multiplicateursExperience[niveauExperience] || 1.0;
+
+  // Bonus combiné expérience + résultats (synergique)
+  if (niveauExperience === 'experte' && preuveSociale === 'forte') {
+    multiplicateurExperienceTotal *= 1.12; // Combo experte + forts résultats = très premium
+  } else if (niveauExperience === 'experte' && preuveSociale === 'moyenne') {
+    multiplicateurExperienceTotal *= 1.06;
+  } else if (niveauExperience === 'intermediaire' && preuveSociale === 'forte') {
+    multiplicateurExperienceTotal *= 1.08;
+  } else if (preuveSociale === 'forte') {
+    multiplicateurExperienceTotal *= 1.05; // Même débutante avec forts résultats
+  } else if (preuveSociale === 'moyenne') {
+    multiplicateurExperienceTotal *= 1.02;
+  }
+
+  // Bonus clients passés (indicateur d'expérience réelle)
+  multiplicateurExperienceTotal *= multiplicateursClientsPassés[nombreClients] || 1.0;
+
+  prixBase *= multiplicateurExperienceTotal;
+
+  // ========== CRITÈRE 2: TRANSFORMATION (TRÈS IMPORTANT) ==========
+  // Le niveau de transformation est crucial peu importe l'expérience
   prixBase *= multiplicateursTransformation[transformation] || 1.0;
 
-  // Multiplicateur clients passés (impact modéré)
-  const nombreClients = answers.nombre_clients || 'aucun';
-  prixBase *= multiplicateursClientsPassés[nombreClients] || 1.0;
+  // ========== CRITÈRE 3: TYPE DE CLIENT (IMPORTANT) ==========
+  // Les grosses boites peuvent payer plus cher
+  prixBase *= getMultiplicateurCible(answers.cible_clients);
 
-  // Multiplicateur preuve sociale (impact modéré)
-  const preuveSociale = evaluerPreuveSociale(answers.resultats_mesurables);
-  const multiplicateurPS = preuveSociale === 'forte' ? 1.07 :
-                           preuveSociale === 'moyenne' ? 1.03 : 1.0;
-  prixBase *= multiplicateurPS;
+  // ========== CRITÈRE 4: BACKGROUND (IMPORTANT POUR NOVICES) ==========
+  prixBase *= evaluerBackground(answers.background, niveauExperience);
 
-  // Multiplicateur zone géographique (impact mineur)
+  // ========== CRITÈRE 5: ZONE GÉOGRAPHIQUE (MINEUR) ==========
   const zone = answers.zone_geographique || 'remote';
   prixBase *= multiplicateursZone[zone] || 1.0;
 
-  // Multiplicateur cible (impact mineur)
-  prixBase *= getMultiplicateurCible(answers.cible_clients);
-
-  // Bonus services (faible impact)
-  const bonusServices = calculerValeurServices(answers.services_inclus) * 0.05;
+  // ========== BONUS SERVICES (PONDÉRÉ PAR EXPÉRIENCE) ==========
+  // Un débutant avec plein de services ≠ qualité garantie
+  const bonusServices = calculerBonusServicesPondere(answers.services_inclus, niveauExperience);
   prixBase += bonusServices;
 
   // 6. Calculer les 3 prix
@@ -178,7 +243,7 @@ export function calculerPricing(answers) {
   ));
 
   resultat.prixIdeal = Math.round(prixBase);
-  resultat.prixReve = Math.round(prixBase * 1.15);
+  resultat.prixReve = Math.round(prixBase * 1.12);
 
   // 7. Plafonner tous les prix à 1500€ maximum
   resultat.prixMinimum = Math.min(resultat.prixMinimum, PRIX_MAX);
@@ -208,8 +273,8 @@ export function calculerPricing(answers) {
     resultat.alertes.push(alertes.surcharge);
   }
 
-  // Décalage posture
-  if (niveauExperience === 'debutante' && resultat.prixRecommande > 1000) {
+  // Décalage posture (débutante qui vise trop haut)
+  if (niveauExperience === 'debutante' && resultat.prixRecommande > 950) {
     resultat.alertes.push(alertes.decalagePosture);
   }
 

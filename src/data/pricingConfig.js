@@ -73,15 +73,16 @@ export const multiplicateursZone = {
   remote: 1.0
 };
 
-// Multiplicateurs basés sur la cible clients (impact mineur)
+// Multiplicateurs basés sur la cible clients (IMPORTANT)
+// Ordre logique: entrepreneurs < petits business < PME < startups < e-commerce < grandes entreprises
 export const multiplicateursCible = {
-  independants: 0.95,
-  petits_business: 0.95,
-  pme: 1.0,
-  ecommerce: 1.05,
-  startups: 1.0,
-  grandes_entreprises: 1.15,
-  influenceurs: 1.0
+  independants: 0.92,        // Budget serré, négocient plus
+  petits_business: 0.95,     // Budget limité
+  influenceurs: 0.98,        // Variable selon leur taille
+  pme: 1.0,                  // Budget standard
+  startups: 1.03,            // Peuvent investir pour croître
+  ecommerce: 1.06,           // Comprennent la valeur du marketing
+  grandes_entreprises: 1.12  // Budget confortable, exigences élevées
 };
 
 // Services qui augmentent la valeur de l'offre (bonus réduit)
