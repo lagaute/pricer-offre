@@ -142,7 +142,7 @@ function PriceResult({ result, userPrices }) {
           <span>{formatPrix(result.prixPlancher)}</span>
         </div>
         <div className="calculation-row">
-          <span>Prix minimum pour objectif financier</span>
+          <span>Prix minimum pour objectif de CA</span>
           <span>{formatPrix(result.prixObjectif)}</span>
         </div>
       </div>

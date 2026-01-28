@@ -41,14 +41,11 @@ export function qualifierOffre(services) {
 }
 
 /**
- * Calcule le prix minimum pour atteindre l'objectif financier
- * Prend en compte les charges URSSAF (~27%)
+ * Calcule le prix minimum pour atteindre l'objectif de CA
  */
-export function calculerPrixObjectif(objectifNet, nombreClientsMax) {
+export function calculerPrixObjectif(objectifCA, nombreClientsMax) {
   const nbClients = nombreClientsMax === '6+' ? 6 : parseInt(nombreClientsMax);
-  // Objectif brut = Objectif net / (1 - taux URSSAF)
-  const objectifBrut = objectifNet / (1 - pricingRules.TAUX_URSSAF);
-  return Math.round(objectifBrut / nbClients);
+  return Math.round(objectifCA / nbClients);
 }
 
 /**
@@ -127,10 +124,10 @@ export function calculerPricing(answers) {
   const typeOffre = qualifierOffre(answers.services_inclus);
   resultat.typeOffreCalcule = typeOffre;
 
-  // 2. Prix objectif (basé sur objectif financier)
-  const objectifNet = parseInt(answers.objectif_mensuel_net) || 2000;
+  // 2. Prix objectif (basé sur objectif de CA)
+  const objectifCA = parseInt(answers.objectif_mensuel_ca) || 2000;
   const nombreClientsMax = answers.nombre_clients_max || '3';
-  resultat.prixObjectif = calculerPrixObjectif(objectifNet, nombreClientsMax);
+  resultat.prixObjectif = calculerPrixObjectif(objectifCA, nombreClientsMax);
 
   // 3. Calculer le prix plancher basé sur le temps (avec taux horaire moyen de 45€)
   const tempsParClient = getTempsParClientMoyen(answers.temps_par_client);

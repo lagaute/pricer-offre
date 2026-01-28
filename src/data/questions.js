@@ -220,7 +220,6 @@ export const questions = [
     type: 'dropdown',
     question: 'Combien de temps un client te prend par mois environ ?',
     options: [
-      { value: '5-10', label: '5 à 10 heures' },
       { value: '10-15', label: '10 à 15 heures' },
       { value: '15-20', label: '15 à 20 heures' },
       { value: '20-30', label: '20 à 30 heures' },
@@ -231,15 +230,15 @@ export const questions = [
     helpText: 'Inclus : création, publication, suivi, calls, reporting...'
   },
   {
-    id: 'objectif_mensuel_net',
+    id: 'objectif_mensuel_ca',
     section: 'piliers',
     type: 'number',
-    question: 'Combien veux-tu gagner NET par mois ?',
+    question: 'Combien veux-tu gagner de CA par mois ?',
     min: 500,
     max: 15000,
     unit: '€',
     required: true,
-    helpText: 'Ton objectif de revenu après charges (URSSAF ~27%).'
+    helpText: 'Ton objectif de chiffre d\'affaires mensuel (avant charges).'
   },
   {
     id: 'nombre_clients_max',
