@@ -27,27 +27,27 @@ export const pricingRules = {
   ]
 };
 
-// Multiplicateurs basés sur l'expérience
+// Multiplicateurs basés sur l'expérience (FACTEUR PRINCIPAL)
 export const multiplicateursExperience = {
   debutante: 1.0,
-  intermediaire: 1.15,
-  experte: 1.35
+  intermediaire: 1.12,
+  experte: 1.3          // Seule une experte peut viser le haut du marché
 };
 
-// Multiplicateurs basés sur le nombre de clients passés
+// Multiplicateurs basés sur le nombre de clients passés (impact modéré)
 export const multiplicateursClientsPassés = {
   'aucun': 1.0,
-  '1-3': 1.05,
-  '4-10': 1.15,
-  '10+': 1.25
+  '1-3': 1.0,
+  '4-10': 1.03,
+  '10+': 1.07
 };
 
-// Multiplicateurs basés sur la preuve sociale
+// Multiplicateurs basés sur la preuve sociale (impact modéré)
 export const multiplicateursPreuveSociale = {
   'aucun': 1.0,
-  'faible': 1.0,      // 1-2 éléments
-  'moyenne': 1.1,     // 3-4 éléments
-  'forte': 1.2        // 5+ éléments
+  'faible': 1.0,
+  'moyenne': 1.03,
+  'forte': 1.07
 };
 
 // Multiplicateurs basés sur le type d'offre
@@ -57,47 +57,48 @@ export const multiplicateursTypeOffre = {
   complete: 1.0       // Minimum 750€
 };
 
-// Multiplicateurs basés sur la transformation
+// Multiplicateurs basés sur la transformation (FACTEUR CLÉ)
+// Plus la transformation est profonde, plus l'offre a de la valeur
 export const multiplicateursTransformation = {
-  faible: 0.9,
+  faible: 0.85,
   moyenne: 1.0,
-  forte: 1.25
+  forte: 1.15         // Seule une forte transformation justifie un prix élevé
 };
 
-// Multiplicateurs basés sur la zone géographique
+// Multiplicateurs basés sur la zone géographique (impact mineur)
 export const multiplicateursZone = {
-  province: 0.9,
+  province: 0.95,
   grande_ville: 1.0,
-  paris_idf: 1.15,
+  paris_idf: 1.05,
   remote: 1.0
 };
 
-// Multiplicateurs basés sur la cible clients
+// Multiplicateurs basés sur la cible clients (impact mineur)
 export const multiplicateursCible = {
-  independants: 0.9,
+  independants: 0.95,
   petits_business: 0.95,
-  pme: 1.1,
-  ecommerce: 1.15,
-  startups: 1.1,
-  grandes_entreprises: 1.3,
+  pme: 1.0,
+  ecommerce: 1.05,
+  startups: 1.0,
+  grandes_entreprises: 1.15,
   influenceurs: 1.0
 };
 
-// Services qui augmentent la valeur de l'offre
+// Services qui augmentent la valeur de l'offre (bonus réduit)
 export const servicesValeur = {
-  audit: 50,
-  strategie: 100,
-  creation_contenu: 150,
-  montage_video: 100,
-  publication: 50,
-  management: 100,
-  reporting: 50,
-  coaching: 150,
-  suivi: 100,
-  direction_artistique: 200,
-  pub: 250,
-  copywriting: 150,
-  tunnel: 300
+  audit: 15,
+  strategie: 25,
+  creation_contenu: 30,
+  montage_video: 20,
+  publication: 10,
+  management: 20,
+  reporting: 10,
+  coaching: 30,
+  suivi: 20,
+  direction_artistique: 30,
+  pub: 40,
+  copywriting: 25,
+  tunnel: 40
 };
 
 // Stratégies de pricing

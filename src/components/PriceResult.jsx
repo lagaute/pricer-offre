@@ -138,10 +138,6 @@ function PriceResult({ result, userPrices }) {
       <div className="calculations-section">
         <h3>Details des calculs</h3>
         <div className="calculation-row">
-          <span>Prix plancher (temps estimé)</span>
-          <span>{formatPrix(result.prixPlancher)}</span>
-        </div>
-        <div className="calculation-row">
           <span>Prix minimum pour objectif de CA</span>
           <span>{formatPrix(result.prixObjectif)}</span>
         </div>

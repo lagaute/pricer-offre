@@ -124,15 +124,13 @@ export function calculerPricing(answers) {
   const typeOffre = qualifierOffre(answers.services_inclus);
   resultat.typeOffreCalcule = typeOffre;
 
-  // 2. Prix objectif (basé sur objectif de CA)
+  // 2. Prix objectif (basé sur objectif de CA) - informatif
   const objectifCA = parseInt(answers.objectif_mensuel_ca) || 2000;
   const nombreClientsMax = answers.nombre_clients_max || '3';
   resultat.prixObjectif = calculerPrixObjectif(objectifCA, nombreClientsMax);
 
-  // 3. Calculer le prix plancher basé sur le temps (avec taux horaire moyen de 45€)
+  // 3. Infos temps (informatif uniquement, n'influence PAS le prix)
   const tempsParClient = getTempsParClientMoyen(answers.temps_par_client);
-  const tauxHoraireMoyen = 45; // Taux horaire moyen CM France
-  resultat.prixPlancher = Math.round(tempsParClient * tauxHoraireMoyen);
 
   // 4. Identifier la zone de marché
   const niveauExperience = answers.niveau_experience || 'debutante';
@@ -140,47 +138,49 @@ export function calculerPricing(answers) {
   resultat.zoneMarche = identifierZoneMarche(typeOffre, niveauExperience, transformation);
 
   // 5. Calculer le prix de base avec multiplicateurs
-  let prixBase = resultat.zoneMarche.min;
+  // Base = 750€ pour offre complète, ajusté par type d'offre
+  const bases = { complete: 750, partielle: 450, specifique: 300 };
+  let prixBase = bases[typeOffre] || 750;
 
-  // Multiplicateur expérience
+  // Multiplicateur expérience (FACTEUR PRINCIPAL)
   prixBase *= multiplicateursExperience[niveauExperience] || 1.0;
 
-  // Multiplicateur clients passés
+  // Multiplicateur transformation (FACTEUR CLÉ)
+  prixBase *= multiplicateursTransformation[transformation] || 1.0;
+
+  // Multiplicateur clients passés (impact modéré)
   const nombreClients = answers.nombre_clients || 'aucun';
   prixBase *= multiplicateursClientsPassés[nombreClients] || 1.0;
 
-  // Multiplicateur preuve sociale
+  // Multiplicateur preuve sociale (impact modéré)
   const preuveSociale = evaluerPreuveSociale(answers.resultats_mesurables);
-  const multiplicateurPS = preuveSociale === 'forte' ? 1.2 :
-                           preuveSociale === 'moyenne' ? 1.1 : 1.0;
+  const multiplicateurPS = preuveSociale === 'forte' ? 1.07 :
+                           preuveSociale === 'moyenne' ? 1.03 : 1.0;
   prixBase *= multiplicateurPS;
 
-  // Multiplicateur transformation
-  prixBase *= multiplicateursTransformation[transformation] || 1.0;
-
-  // Multiplicateur zone géographique
+  // Multiplicateur zone géographique (impact mineur)
   const zone = answers.zone_geographique || 'remote';
   prixBase *= multiplicateursZone[zone] || 1.0;
 
-  // Multiplicateur cible
+  // Multiplicateur cible (impact mineur)
   prixBase *= getMultiplicateurCible(answers.cible_clients);
 
-  // Valeur des services (bonus)
-  const bonusServices = calculerValeurServices(answers.services_inclus) * 0.1;
+  // Bonus services (faible impact)
+  const bonusServices = calculerValeurServices(answers.services_inclus) * 0.05;
   prixBase += bonusServices;
 
   // 6. Calculer les 3 prix
+  const PRIX_MAX = pricingRules.MAXIMUM_PRIX;
+
   resultat.prixMinimum = Math.round(Math.max(
-    resultat.prixPlancher,
     resultat.prixObjectif * 0.8,
     typeOffre === 'complete' ? pricingRules.MINIMUM_OFFRE_COMPLETE : 300
   ));
 
   resultat.prixIdeal = Math.round(prixBase);
-  resultat.prixReve = Math.round(prixBase * 1.25);
+  resultat.prixReve = Math.round(prixBase * 1.15);
 
   // 7. Plafonner tous les prix à 1500€ maximum
-  const PRIX_MAX = pricingRules.MAXIMUM_PRIX;
   resultat.prixMinimum = Math.min(resultat.prixMinimum, PRIX_MAX);
   resultat.prixIdeal = Math.min(resultat.prixIdeal, PRIX_MAX);
   resultat.prixReve = Math.min(resultat.prixReve, PRIX_MAX);
@@ -189,7 +189,7 @@ export function calculerPricing(answers) {
   resultat.prixIdeal = Math.max(resultat.prixIdeal, resultat.prixMinimum);
   resultat.prixReve = Math.max(resultat.prixReve, resultat.prixIdeal);
 
-  // 8. Prix recommandé (juste milieu entre idéal et rêvé)
+  // 8. Prix recommandé
   resultat.prixRecommande = Math.round((resultat.prixIdeal + resultat.prixReve) / 2);
   resultat.prixRecommande = Math.min(resultat.prixRecommande, PRIX_MAX);
 
@@ -202,11 +202,6 @@ export function calculerPricing(answers) {
     resultat.alertes.push(alertes.offreCompleteSous750);
   }
 
-  // Sous-évaluation
-  if (resultat.prixRecommande < resultat.prixPlancher) {
-    resultat.alertes.push(alertes.sousEvaluation);
-  }
-
   // Risque de surcharge
   const nbClients = nombreClientsMax === '6+' ? 6 : parseInt(nombreClientsMax);
   if (nbClients >= 5 && tempsParClient >= 25) {
@@ -214,7 +209,7 @@ export function calculerPricing(answers) {
   }
 
   // Décalage posture
-  if (niveauExperience === 'debutante' && resultat.prixRecommande > 1200) {
+  if (niveauExperience === 'debutante' && resultat.prixRecommande > 1000) {
     resultat.alertes.push(alertes.decalagePosture);
   }
 
@@ -263,9 +258,9 @@ function genererJustifications(answers, resultat, typeOffre) {
     `Le marché français pratique cette fourchette (${resultat.zoneMarche.label}: ${resultat.zoneMarche.min}€ - ${resultat.zoneMarche.max}€).`
   );
 
-  // Prix plancher
+  // Philosophie
   justifications.push(
-    `Ce prix respecte ton prix plancher estimé (${resultat.prixPlancher}€) basé sur le temps investi.`
+    `Ce prix reflète la valeur de ta transformation, pas le nombre d'heures passées.`
   );
 
   return justifications;
