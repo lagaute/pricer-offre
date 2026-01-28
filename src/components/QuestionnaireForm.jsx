@@ -91,7 +91,7 @@ function QuestionnaireForm() {
 
       {showResult ? (
         <>
-          <PriceResult result={result} />
+          <PriceResult result={result} userPrices={answers} />
           <div className="navigation-buttons">
             <button className="btn btn-secondary" onClick={handlePrevious}>
               Modifier mes reponses

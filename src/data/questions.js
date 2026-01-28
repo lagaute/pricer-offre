@@ -3,6 +3,44 @@
 
 export const questions = [
   // ============================================
+  // SECTION 0: TES OBJECTIFS DE PRIX
+  // ============================================
+  {
+    id: 'prix_mini_utilisateur',
+    section: 'objectifs_prix',
+    sectionTitle: 'Tes Objectifs de Prix',
+    type: 'number',
+    question: 'Quel est ton prix MINIMUM acceptable ?',
+    min: 100,
+    max: 3000,
+    unit: '€/mois',
+    required: true,
+    helpText: 'Le prix en dessous duquel tu refuserais une mission.'
+  },
+  {
+    id: 'prix_ideal_utilisateur',
+    section: 'objectifs_prix',
+    type: 'number',
+    question: 'Quel est ton prix IDÉAL ?',
+    min: 100,
+    max: 3000,
+    unit: '€/mois',
+    required: true,
+    helpText: 'Le prix avec lequel tu te sentirais alignée et satisfaite.'
+  },
+  {
+    id: 'prix_ambitieux_utilisateur',
+    section: 'objectifs_prix',
+    type: 'number',
+    question: 'Quel est ton prix AMBITIEUX (rêvé) ?',
+    min: 100,
+    max: 3000,
+    unit: '€/mois',
+    required: true,
+    helpText: 'Le prix que tu aimerais atteindre, ton objectif haut.'
+  },
+
+  // ============================================
   // SECTION A: EXPÉRIENCE & CRÉDIBILITÉ
   // ============================================
   {
@@ -237,6 +275,11 @@ export const questions = [
 
 // Configuration des sections pour l'affichage
 export const sections = [
+  {
+    id: 'objectifs_prix',
+    title: 'Tes Objectifs de Prix',
+    description: 'Indique tes objectifs de prix pour voir où tu te situes par rapport au marché.'
+  },
   {
     id: 'experience',
     title: 'Expérience & Crédibilité',
