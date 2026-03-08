@@ -35,7 +35,11 @@ export function qualifierOffre(services) {
   const servicesComplets = ['strategie', 'creation_contenu', 'publication', 'management', 'reporting'];
   const servicesPresents = servicesComplets.filter(s => services.includes(s));
 
-  if (servicesPresents.length >= 4) return 'complete';
+  // Stratégie + 3+ autres services clés = complète
+  if (services.includes('strategie') && servicesPresents.length >= 4) return 'complete';
+  // Stratégie présente (seule ou avec peu de services) = partielle (peut être upgradée selon profil)
+  if (services.includes('strategie')) return 'partielle';
+  // Sans stratégie
   if (servicesPresents.length >= 2) return 'partielle';
   return 'specifique';
 }
@@ -167,7 +171,20 @@ export function calculerPricing(answers) {
   };
 
   // 1. Qualifier automatiquement le type d'offre
-  const typeOffre = qualifierOffre(answers.services_inclus);
+  let typeOffre = qualifierOffre(answers.services_inclus);
+
+  // 4. Identifier le profil avant de potentiellement upgrader le type d'offre
+  const niveauExperience = answers.niveau_experience || 'debutante';
+  const transformation = answers.niveau_transformation || 'moyenne';
+  const preuveSocialeType = evaluerPreuveSociale(answers.resultats_mesurables);
+
+  // Upgrade vers "complète" si experte + forts résultats + stratégie incluse
+  const hasStrategie = answers.services_inclus?.includes('strategie');
+  if (typeOffre === 'partielle' && hasStrategie &&
+      niveauExperience === 'experte' && preuveSocialeType === 'forte') {
+    typeOffre = 'complete';
+  }
+
   resultat.typeOffreCalcule = typeOffre;
 
   // 2. Prix objectif (basé sur objectif de CA) - informatif
@@ -178,19 +195,22 @@ export function calculerPricing(answers) {
   // 3. Infos temps (informatif uniquement, n'influence PAS le prix)
   const tempsParClient = getTempsParClientMoyen(answers.temps_par_client);
 
-  // 4. Identifier la zone de marché
-  const niveauExperience = answers.niveau_experience || 'debutante';
-  const transformation = answers.niveau_transformation || 'moyenne';
   resultat.zoneMarche = identifierZoneMarche(typeOffre, niveauExperience, transformation);
 
   // 5. Calculer le prix de base
-  // Base = 750€ pour offre complète, ajusté par type d'offre
+  const autresServicesClés = ['creation_contenu', 'publication', 'management', 'reporting'];
+  const strategieSeule = hasStrategie &&
+    !autresServicesClés.some(s => answers.services_inclus?.includes(s));
+
+  // Base selon type d'offre
+  // Partielle avec stratégie = base rehaussée (offre plus intéressante, ~600-700€ pour non-experte)
   const bases = { complete: 750, partielle: 450, specifique: 300 };
   let prixBase = bases[typeOffre] || 750;
+  if (typeOffre === 'partielle' && hasStrategie) prixBase = 600;
 
   // ========== CRITÈRE 1: EXPÉRIENCE + RÉSULTATS (LE PLUS IMPORTANT) ==========
   // L'expérience avec des résultats significatifs est gage de qualité
-  const preuveSociale = evaluerPreuveSociale(answers.resultats_mesurables);
+  const preuveSociale = preuveSocialeType; // calculé plus haut pour le type d'offre
   const nombreClients = answers.nombre_clients || 'aucun';
 
   // Multiplicateur expérience de base
@@ -225,10 +245,6 @@ export function calculerPricing(answers) {
   // ========== CRITÈRE 4: BACKGROUND (IMPORTANT POUR NOVICES) ==========
   prixBase *= evaluerBackground(answers.background, niveauExperience);
 
-  // ========== CRITÈRE 5: ZONE GÉOGRAPHIQUE (MINEUR) ==========
-  const zone = answers.zone_geographique || 'remote';
-  prixBase *= multiplicateursZone[zone] || 1.0;
-
   // ========== BONUS SERVICES (PONDÉRÉ PAR EXPÉRIENCE) ==========
   // Un débutant avec plein de services ≠ qualité garantie
   const bonusServices = calculerBonusServicesPondere(answers.services_inclus, niveauExperience);
@@ -238,7 +254,7 @@ export function calculerPricing(answers) {
   const PRIX_MAX = pricingRules.MAXIMUM_PRIX;
 
   resultat.prixMinimum = Math.round(Math.max(
-    resultat.prixObjectif * 0.8,
+    prixBase * 0.85,
     typeOffre === 'complete' ? pricingRules.MINIMUM_OFFRE_COMPLETE : 300
   ));
 
@@ -257,6 +273,13 @@ export function calculerPricing(answers) {
   // 8. Prix recommandé
   resultat.prixRecommande = Math.round((resultat.prixIdeal + resultat.prixReve) / 2);
   resultat.prixRecommande = Math.min(resultat.prixRecommande, PRIX_MAX);
+
+  // Cas spécial : stratégie seule vendue par une non-experte → plafond 750€
+  if (strategieSeule && niveauExperience !== 'experte') {
+    resultat.prixIdeal = Math.min(resultat.prixIdeal, 750);
+    resultat.prixReve = Math.min(resultat.prixReve, 750);
+    resultat.prixRecommande = Math.min(resultat.prixRecommande, 750);
+  }
 
   // 9. Vérifications et alertes
   // Offre complète sous 750€
@@ -310,9 +333,9 @@ function genererJustifications(answers, resultat, typeOffre) {
     specifique: 'spécifique (mission ciblée)'
   };
   const transfoLabels = {
-    faible: 'faible',
-    moyenne: 'moyenne',
-    forte: 'forte'
+    faible: 'standard',
+    moyenne: 'avancée',
+    forte: 'premium'
   };
   justifications.push(
     `Ton offre est qualifiée comme ${typeLabels[typeOffre] || 'non précisée'} avec une transformation ${transfoLabels[answers.niveau_transformation] || 'non précisée'}.`

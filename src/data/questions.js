@@ -76,6 +76,7 @@ export const questions = [
     type: 'multiple',
     question: 'Quel est ton background / formation ?',
     options: [
+      { value: 'pas_etudes', label: 'Pas d\'études' },
       { value: 'autodidacte', label: 'Autodidacte' },
       { value: 'formation_cm', label: 'Formation spécialisée CM/Social Media' },
       { value: 'ecole_commerce', label: 'École de commerce' },
@@ -184,17 +185,17 @@ export const questions = [
     options: [
       {
         value: 'faible',
-        label: 'Faible',
+        label: 'Standard',
         description: 'Présence basique sur les réseaux, vitrine sans stratégie ni résultats concrets'
       },
       {
         value: 'moyenne',
-        label: 'Moyenne',
+        label: 'Avancé',
         description: 'Amélioration visible de la présence, gain de temps pour le client, début de résultats'
       },
       {
         value: 'forte',
-        label: 'Forte',
+        label: 'Premium',
         description: 'Vraie transformation business : visibilité, clients générés, CA en hausse, gain de temps majeur'
       }
     ],
@@ -269,6 +270,13 @@ export const questions = [
     ],
     required: true,
     helpText: 'La zone géographique peut influencer les tarifs pratiqués.'
+  },
+  {
+    id: 'benchmark',
+    section: 'piliers',
+    type: 'benchmark',
+    question: 'As-tu fait un benchmark de ton domaine ?',
+    required: false
   }
 ];
 
