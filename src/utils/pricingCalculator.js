@@ -31,6 +31,12 @@ export function getTempsParClientMoyen(intervalle) {
 export function qualifierOffre(services) {
   if (!services || services.length === 0) return 'specifique';
 
+  // Audit seul = catégorie dédiée
+  if (services.length === 1 && services[0] === 'audit') return 'audit_seul';
+
+  // Stratégie seule = catégorie dédiée
+  if (services.length === 1 && services[0] === 'strategie') return 'strategie_seule';
+
   // Services clés pour une offre complète
   const servicesComplets = ['strategie', 'creation_contenu', 'publication', 'management', 'reporting'];
   const servicesPresents = servicesComplets.filter(s => services.includes(s));
@@ -88,6 +94,16 @@ export function getMultiplicateurCible(cibles) {
 export function identifierZoneMarche(typeOffre, niveauExperience, transformation) {
   const { fourchettesMarche } = pricingRules;
 
+  // Audit seul = mission ponctuelle à faible plancher
+  if (typeOffre === 'audit_seul') {
+    return { min: 120, max: 400, label: 'Audit seul' };
+  }
+  // Stratégie seule = fourchette variable selon expérience
+  if (typeOffre === 'strategie_seule') {
+    if (niveauExperience === 'experte') return { min: 700, max: 1300, label: 'Stratégie - Experte' };
+    if (niveauExperience === 'intermediaire') return { min: 450, max: 850, label: 'Stratégie - Intermédiaire' };
+    return { min: 300, max: 600, label: 'Stratégie - Débutante' };
+  }
   // Offre partielle ou spécifique = peut être sous le minimum
   if (typeOffre === 'specifique') {
     return { min: 300, max: 600, label: 'Mission spécifique' };
@@ -198,15 +214,17 @@ export function calculerPricing(answers) {
   resultat.zoneMarche = identifierZoneMarche(typeOffre, niveauExperience, transformation);
 
   // 5. Calculer le prix de base
-  const autresServicesClés = ['creation_contenu', 'publication', 'management', 'reporting'];
-  const strategieSeule = hasStrategie &&
-    !autresServicesClés.some(s => answers.services_inclus?.includes(s));
-
   // Base selon type d'offre
   // Partielle avec stratégie = base rehaussée (offre plus intéressante, ~600-700€ pour non-experte)
-  const bases = { complete: 750, partielle: 450, specifique: 300 };
+  const bases = { complete: 750, partielle: 450, specifique: 300, audit_seul: 180 };
   let prixBase = bases[typeOffre] || 750;
   if (typeOffre === 'partielle' && hasStrategie) prixBase = 600;
+
+  // Stratégie seule = base variable selon expérience
+  if (typeOffre === 'strategie_seule') {
+    const basesStrategieSeule = { debutante: 400, intermediaire: 600, experte: 850 };
+    prixBase = basesStrategieSeule[niveauExperience] || 400;
+  }
 
   // ========== CRITÈRE 1: EXPÉRIENCE + RÉSULTATS (LE PLUS IMPORTANT) ==========
   // L'expérience avec des résultats significatifs est gage de qualité
@@ -253,9 +271,17 @@ export function calculerPricing(answers) {
   // 6. Calculer les 3 prix
   const PRIX_MAX = pricingRules.MAXIMUM_PRIX;
 
+  const plancherParType = {
+    complete: pricingRules.MINIMUM_OFFRE_COMPLETE,
+    partielle: 300,
+    specifique: 300,
+    audit_seul: 120,
+    strategie_seule: 250
+  };
+
   resultat.prixMinimum = Math.round(Math.max(
     prixBase * 0.85,
-    typeOffre === 'complete' ? pricingRules.MINIMUM_OFFRE_COMPLETE : 300
+    plancherParType[typeOffre] ?? 300
   ));
 
   resultat.prixIdeal = Math.round(prixBase);
@@ -273,13 +299,6 @@ export function calculerPricing(answers) {
   // 8. Prix recommandé
   resultat.prixRecommande = Math.round((resultat.prixIdeal + resultat.prixReve) / 2);
   resultat.prixRecommande = Math.min(resultat.prixRecommande, PRIX_MAX);
-
-  // Cas spécial : stratégie seule vendue par une non-experte → plafond 750€
-  if (strategieSeule && niveauExperience !== 'experte') {
-    resultat.prixIdeal = Math.min(resultat.prixIdeal, 750);
-    resultat.prixReve = Math.min(resultat.prixReve, 750);
-    resultat.prixRecommande = Math.min(resultat.prixRecommande, 750);
-  }
 
   // 9. Vérifications et alertes
   // Offre complète sous 750€
@@ -330,7 +349,9 @@ function genererJustifications(answers, resultat, typeOffre) {
   const typeLabels = {
     complete: 'complète (accompagnement 360°)',
     partielle: 'partielle (plusieurs services clés)',
-    specifique: 'spécifique (mission ciblée)'
+    specifique: 'spécifique (mission ciblée)',
+    audit_seul: 'audit seul (mission ponctuelle)',
+    strategie_seule: 'stratégie seule (document stratégique)'
   };
   const transfoLabels = {
     faible: 'standard',

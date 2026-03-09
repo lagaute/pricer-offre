@@ -82,7 +82,7 @@ export const multiplicateursCible = {
   pme: 1.0,                  // Budget standard
   startups: 1.03,            // Peuvent investir pour croître
   ecommerce: 1.06,           // Comprennent la valeur du marketing
-  grandes_entreprises: 1.12  // Budget confortable, exigences élevées
+  grandes_entreprises: 1.06  // Budget confortable, exigences élevées
 };
 
 // Services qui augmentent la valeur de l'offre (bonus réduit)
