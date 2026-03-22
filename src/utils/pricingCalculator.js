@@ -181,10 +181,19 @@ export function calculerPricing(answers) {
     prixRecommande: 0,
     zoneMarche: null,
     typeOffreCalcule: '',
+    tarifSurDevis: false,
     alertes: [],
     justifications: [],
     phraseAnnonce: ''
   };
+
+  // Cas montage vidéo seul : tarification impossible sans détail de la prestation
+  const servicesVideo = ['montage_video'];
+  const services = answers.services_inclus || [];
+  if (services.length > 0 && services.every(s => servicesVideo.includes(s))) {
+    resultat.tarifSurDevis = true;
+    return resultat;
+  }
 
   // 1. Qualifier automatiquement le type d'offre
   let typeOffre = qualifierOffre(answers.services_inclus);
@@ -300,6 +309,10 @@ export function calculerPricing(answers) {
   resultat.prixRecommande = Math.round((resultat.prixIdeal + resultat.prixReve) / 2);
   resultat.prixRecommande = Math.min(resultat.prixRecommande, PRIX_MAX);
 
+  // Clients nécessaires pour atteindre l'objectif CA
+  resultat.clientsNecessaires = Math.ceil(objectifCA / resultat.prixRecommande);
+  resultat.objectifCA = objectifCA;
+
   // 9. Vérifications et alertes
   // Offre complète sous 750€
   if (typeOffre === 'complete' && resultat.prixRecommande < pricingRules.MINIMUM_OFFRE_COMPLETE) {
@@ -360,11 +373,6 @@ function genererJustifications(answers, resultat, typeOffre) {
   };
   justifications.push(
     `Ton offre est qualifiée comme ${typeLabels[typeOffre] || 'non précisée'} avec une transformation ${transfoLabels[answers.niveau_transformation] || 'non précisée'}.`
-  );
-
-  // Marché
-  justifications.push(
-    `Le marché français pratique cette fourchette (${resultat.zoneMarche.label}: ${resultat.zoneMarche.min}€ - ${resultat.zoneMarche.max}€).`
   );
 
   // Philosophie

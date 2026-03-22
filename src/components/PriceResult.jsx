@@ -1,68 +1,78 @@
 import React from 'react';
 import { formatPrix } from '../utils/pricingCalculator';
 
+function calculerRange(prix) {
+  const bas = Math.floor(prix / 100) * 100;
+  const haut = Math.ceil(prix / 100) * 100 + 50;
+  return { bas, haut };
+}
+
 function PriceResult({ result, userPrices }) {
   if (!result) return null;
 
-  // Récupérer les prix de l'utilisateur
+  if (result.tarifSurDevis) {
+    return (
+      <div className="price-result">
+        <h2 className="result-title">Ton Pricing Recommande</h2>
+        <div className="sur-devis-message">
+          <p>La tarification de ce service dépend de la prestation proposée au client.</p>
+          <ul>
+            <li>Nombre de vidéos incluses</li>
+            <li>Type de vidéos (Reels, YouTube, Stories…)</li>
+            <li>Durée et complexité du montage</li>
+            <li>Heures de tournage si applicable</li>
+          </ul>
+          <p>Construis un devis personnalisé selon ces critères.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const range = calculerRange(result.prixRecommande);
+
   const prixMiniUser = parseInt(userPrices?.prix_mini_utilisateur) || 500;
   const prixIdealUser = parseInt(userPrices?.prix_ideal_utilisateur) || 800;
   const prixAmbitieuxUser = parseInt(userPrices?.prix_ambitieux_utilisateur) || 1200;
 
-  // S'assurer que les prix utilisateur sont cohérents
   const minPrice = Math.min(prixMiniUser, prixIdealUser, prixAmbitieuxUser);
   const maxPrice = Math.max(prixMiniUser, prixIdealUser, prixAmbitieuxUser);
   const midPrice = prixIdealUser;
 
-  // Calculer la position du marqueur idéal (proportionnelle)
   const idealMarkerPosition = maxPrice > minPrice
     ? ((midPrice - minPrice) / (maxPrice - minPrice)) * 100
     : 50;
 
-  // Calculer la position du curseur (prix calculé par rapport aux prix utilisateur)
-  const calculateCursorPosition = () => {
-    const prixCalcule = result.prixRecommande;
+  const prixCalcule = result.prixRecommande;
+  const cursorPosition = prixCalcule <= minPrice ? 0
+    : prixCalcule >= maxPrice ? 100
+    : ((prixCalcule - minPrice) / (maxPrice - minPrice)) * 100;
 
-    if (prixCalcule <= minPrice) return 0;
-    if (prixCalcule >= maxPrice) return 100;
-
-    return ((prixCalcule - minPrice) / (maxPrice - minPrice)) * 100;
-  };
-
-  const cursorPosition = calculateCursorPosition();
-
-  // Déterminer le message selon la position
-  const getPositionMessage = () => {
-    const prixCalcule = result.prixRecommande;
-    if (prixCalcule < minPrice) {
-      return { text: 'En dessous de ton minimum', color: '#e53e3e' };
-    } else if (prixCalcule < midPrice) {
-      return { text: 'Entre ton minimum et ton idéal', color: '#ed8936' };
-    } else if (prixCalcule < maxPrice) {
-      return { text: 'Entre ton idéal et ton ambitieux', color: '#48bb78' };
-    } else {
-      return { text: 'Au-dessus de ton prix ambitieux !', color: '#38a169' };
-    }
-  };
-
-  const positionMessage = getPositionMessage();
+  const positionMessage = prixCalcule < minPrice
+    ? { text: 'En dessous de ton minimum', color: '#e53e3e' }
+    : prixCalcule < midPrice
+    ? { text: 'Entre ton minimum et ton idéal', color: '#ed8936' }
+    : prixCalcule < maxPrice
+    ? { text: 'Entre ton idéal et ton ambitieux', color: '#48bb78' }
+    : { text: 'Au-dessus de ton prix ambitieux !', color: '#38a169' };
 
   return (
     <div className="price-result">
-      <h2 className="result-title">Ton Pricing Recommande</h2>
 
       {/* Prix recommandé */}
       <div className="recommended-price">
-        <span className="recommended-label">Prix recommande a communiquer</span>
-        <span className="recommended-value">{formatPrix(result.prixRecommande)}/mois</span>
+        <span className="recommended-label">Fourchette recommandée</span>
+        <p className="recommended-value">{formatPrix(range.bas)} — {formatPrix(range.haut)}<span className="recommended-unit">/mois</span></p>
       </div>
+
+      {result.objectifCA && (
+        <p className="clients-objectif">Pour atteindre ton objectif de {formatPrix(result.objectifCA)}/mois → <strong>{result.clientsNecessaires} client{result.clientsNecessaires > 1 ? 's' : ''}</strong></p>
+      )}
 
       {/* Curseur de positionnement */}
       <div className="price-slider-section">
         <h3>Où se situe ton prix calculé ?</h3>
         <div className="price-slider-container">
           <div className="price-slider-track">
-            {/* Marqueurs des prix utilisateur */}
             <div className="price-marker mini" style={{ left: '0%' }}>
               <span className="marker-line"></span>
               <span className="marker-label">Mini</span>
@@ -78,16 +88,11 @@ function PriceResult({ result, userPrices }) {
               <span className="marker-label">Ambitieux</span>
               <span className="marker-value">{formatPrix(maxPrice)}</span>
             </div>
-
-            {/* Curseur du prix calculé */}
             <div
               className="price-cursor"
-              style={{
-                left: `${Math.min(Math.max(cursorPosition, 0), 100)}%`,
-                backgroundColor: positionMessage.color
-              }}
+              style={{ left: `${Math.min(Math.max(cursorPosition, 0), 100)}%`, backgroundColor: positionMessage.color }}
             >
-              <span className="cursor-value">{formatPrix(result.prixRecommande)}</span>
+              <span className="cursor-value">{formatPrix(Math.round(result.prixRecommande / 10) * 10)}</span>
             </div>
           </div>
         </div>
@@ -136,9 +141,9 @@ function PriceResult({ result, userPrices }) {
 
       {/* Phrase d'annonce */}
       <div className="phrase-section">
-        <h3>Phrase pour annoncer ton prix</h3>
+        <h3>Reminder ♡</h3>
         <blockquote className="phrase-annonce">
-          "Tu ne paies pas mes heures de travail, tu paies la transformation de ton business."
+          Le client ne paie pas une prestation parmi tant d'autres, il paie la transformation business que tu lui apportes.
         </blockquote>
       </div>
 

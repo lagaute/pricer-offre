@@ -5,10 +5,31 @@ import { questions, sections } from '../data/questions';
 import { calculerPricing } from '../utils/pricingCalculator';
 
 function QuestionnaireForm() {
+  const [showLanding, setShowLanding] = useState(true);
   const [answers, setAnswers] = useState({});
   const [currentSection, setCurrentSection] = useState(0);
   const [result, setResult] = useState(null);
   const [showResult, setShowResult] = useState(false);
+
+  if (showLanding) {
+    return (
+      <div className="questionnaire-container landing-page">
+        <div className="landing-content">
+          <p className="landing-tag">Méthode Freelance Academy</p>
+          <h1 className="landing-title">Le Pricer des<br />Community Managers</h1>
+          <p className="landing-description">
+            Définis un tarif aligné avec ton expertise et la transformation que tu apportes à tes clients.
+          </p>
+          <button className="btn btn-primary landing-cta" onClick={() => setShowLanding(false)}>
+            Calculer mon prix
+          </button>
+          <p className="landing-disclaimer">
+            * Cet outil a été conçu pour t'aider à te positionner sur tes prix. Il ne remplace pas une vraie stratégie que je te recommande de construire en amont avec la méthodologie de la FA.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const handleAnswerChange = (questionId, value) => {
     setAnswers((prev) => ({

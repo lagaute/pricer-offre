@@ -82,7 +82,7 @@ export const questions = [
       { value: 'ecole_commerce', label: 'École de commerce' },
       { value: 'ecole_communication', label: 'École de communication/marketing' },
       { value: 'universite', label: 'Université (licence/master)' },
-      { value: 'grande_ecole', label: 'Grande école' },
+
       { value: 'certification', label: 'Certifications professionnelles (Meta, Google...)' }
     ],
     multiple: true,
@@ -258,20 +258,6 @@ export const questions = [
     helpText: 'Sois réaliste pour éviter la surcharge mentale.'
   },
   {
-    id: 'zone_geographique',
-    section: 'piliers',
-    type: 'dropdown',
-    question: 'Quelle est ta zone géographique de travail ?',
-    options: [
-      { value: 'province', label: 'Province / Petite ville' },
-      { value: 'grande_ville', label: 'Grande ville (hors Paris)' },
-      { value: 'paris_idf', label: 'Paris / Île-de-France' },
-      { value: 'remote', label: '100% Remote (clients partout en France)' }
-    ],
-    required: true,
-    helpText: 'La zone géographique peut influencer les tarifs pratiqués.'
-  },
-  {
     id: 'benchmark',
     section: 'piliers',
     type: 'benchmark',
@@ -285,12 +271,12 @@ export const sections = [
   {
     id: 'objectifs_prix',
     title: 'Tes Objectifs de Prix',
-    description: 'Indique tes objectifs de prix pour voir où tu te situes par rapport au marché.'
+    description: 'Indique tes trois niveaux de prix en t\'appuyant sur ce que tu as défini dans la FA.'
   },
   {
     id: 'experience',
-    title: 'Expérience & Crédibilité',
-    description: 'Ces informations nous permettent de comprendre ton parcours et ton niveau d\'expertise.'
+    title: 'Expérience & Contexte',
+    description: 'Ces informations me permettent de comprendre ton parcours et ton niveau d\'expertise.'
   },
   {
     id: 'resultats',
@@ -309,7 +295,7 @@ export const sections = [
   },
   {
     id: 'piliers',
-    title: 'Les 4 Piliers du Pricing',
-    description: 'Ces éléments permettent de calculer ton prix plancher et ton objectif.'
+    title: 'Les piliers du Pricing',
+    description: ''
   }
 ];

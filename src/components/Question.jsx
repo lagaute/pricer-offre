@@ -188,7 +188,7 @@ function Question({ question, value, onChange }) {
 
             {fait === false && (
               <p className="benchmark-recommandation">
-                <em>Un benchmark est recommandé pour avoir un pricer le plus précis possible.</em>
+                <em>Un benchmark est recommandé pour situer tes prix par rapport au marché.</em>
               </p>
             )}
           </div>

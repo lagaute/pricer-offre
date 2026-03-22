@@ -35,19 +35,128 @@ body {
 .app {
   min-height: 100vh;
   padding: 2rem;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
 }
 
 /* Container */
 .questionnaire-container {
   width: 100%;
   max-width: 800px;
+  margin: 0 auto;
   background: var(--card-bg);
   border-radius: 24px;
   padding: 3rem;
   box-shadow: var(--shadow);
+}
+
+/* Password gate */
+.password-gate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  text-align: center;
+}
+
+.password-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #2d3748;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+}
+
+.password-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+}
+
+.password-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 280px;
+}
+
+.password-input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  font-size: 1rem;
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  text-align: center;
+  letter-spacing: 0.15em;
+  background: white;
+  color: var(--text-primary);
+  transition: border-color 0.2s;
+}
+
+.password-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(163, 191, 122, 0.2);
+}
+
+.password-error {
+  font-size: 0.8rem;
+  color: var(--danger-color);
+  margin: 0;
+}
+
+/* Landing page */
+.landing-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 75vh;
+}
+
+.landing-content {
+  text-align: center;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 2rem 0;
+}
+
+.landing-tag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: #9aab85;
+  margin-bottom: 2rem;
+}
+
+.landing-title {
+  font-size: 3rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #2d3748;
+  margin-bottom: 2rem;
+  letter-spacing: -0.03em;
+}
+
+.landing-description {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  margin-bottom: 3rem;
+}
+
+.landing-cta {
+  padding: 1rem 3rem;
+  font-size: 1rem;
+  margin-bottom: 3rem;
+}
+
+.landing-disclaimer {
+  font-size: 0.72rem;
+  color: #c0c9b8;
+  line-height: 1.6;
+  font-style: italic;
 }
 
 /* Header */
@@ -251,10 +360,12 @@ body {
 .number-input {
   padding: 0.875rem 1rem;
   font-size: 1rem;
-  border: 2px solid var(--border-color);
+  border: 2px solid var(--primary-color);
   border-radius: 12px;
   width: 150px;
   transition: all 0.2s;
+  background: white;
+  color: var(--text-primary);
 }
 
 .number-input:focus {
@@ -275,6 +386,8 @@ body {
   font-size: 1rem;
   border: 2px solid var(--border-color);
   border-radius: 12px;
+  background: white;
+  color: var(--text-primary);
   resize: vertical;
   min-height: 120px;
   font-family: inherit;
@@ -441,26 +554,105 @@ body {
   color: var(--text-primary);
 }
 
+.clients-objectif {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.clients-objectif strong {
+  color: #3d4d3a;
+}
+
+/* Clients nécessaires */
+.clients-necessaires {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f0fff4;
+  border: 1px solid #9ae6b4;
+  border-radius: 10px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.clients-label {
+  color: #276749;
+  font-size: 0.875rem;
+}
+
+.clients-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #22543d;
+}
+
+/* Sur devis */
+.sur-devis-message {
+  background: #fffbeb;
+  border: 1px solid #f6ad55;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: left;
+}
+
+.sur-devis-message p {
+  color: #744210;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.sur-devis-message p:first-child {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.sur-devis-message ul {
+  color: #92400e;
+  padding-left: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.sur-devis-message ul li {
+  margin-bottom: 0.3rem;
+}
+
 /* Recommended Price */
 .recommended-price {
-  background: linear-gradient(135deg, var(--primary-dark), var(--secondary-color));
+  background: #ffffff;
   border-radius: 16px;
-  padding: 2rem;
+  border: 1px solid #edf0eb;
+  border-top: 3px solid var(--primary-dark);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.05);
+  padding: 2.5rem 2.5rem 2rem;
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .recommended-label {
   display: block;
-  color: rgba(255, 255, 255, 0.95);
-  font-size: 1rem;
-  margin-bottom: 0.5rem;
+  color: #9aab85;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: 1rem;
 }
 
 .recommended-value {
   font-size: 3rem;
-  font-weight: 800;
-  color: white;
+  font-weight: 500;
+  color: #3d4d3a;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+.recommended-unit {
+  font-size: 1rem;
+  font-weight: 400;
+  color: #9aab85;
+  margin-left: 0.3rem;
 }
 
 /* Alerts */
@@ -510,16 +702,18 @@ body {
 
 /* Justifications */
 .justifications-section {
-  background: #f7fafc;
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
+  border-top: 1px solid #edf0eb;
+  padding-top: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .justifications-section h3 {
-  font-size: 1.25rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: #9aab85;
   margin-bottom: 1rem;
-  color: var(--text-primary);
 }
 
 .justifications-list {
@@ -528,19 +722,19 @@ body {
 }
 
 .justifications-list li {
-  padding: 0.5rem 0;
-  padding-left: 1.5rem;
+  padding: 0.4rem 0;
+  padding-left: 1.25rem;
   position: relative;
   color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 .justifications-list li::before {
-  content: "OK";
+  content: "–";
   position: absolute;
   left: 0;
-  color: var(--success-color);
-  font-weight: bold;
-  font-size: 0.75rem;
+  color: #9aab85;
 }
 
 /* Market Info */
@@ -594,23 +788,26 @@ body {
 
 /* Phrase Section */
 .phrase-section {
-  margin-bottom: 2rem;
+  border-top: 1px solid #edf0eb;
+  padding-top: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .phrase-section h3 {
-  font-size: 1.25rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: #9aab85;
   margin-bottom: 1rem;
-  color: var(--text-primary);
 }
 
 .phrase-annonce {
-  background: linear-gradient(135deg, #f7fbf2 0%, #eef5e4 100%);
-  border-left: 4px solid var(--primary-dark);
-  padding: 1.5rem;
-  border-radius: 0 12px 12px 0;
+  border: none;
+  padding: 0;
   font-style: italic;
-  font-size: 1.1rem;
-  color: var(--text-primary);
+  font-size: 0.95rem;
+  color: var(--text-secondary);
   line-height: 1.7;
 }
 
@@ -635,17 +832,21 @@ body {
 
 /* Price Slider / Curseur de positionnement */
 .price-slider-section {
-  background: #f7fafc;
-  border-radius: 16px;
-  padding: 2rem;
-  margin-bottom: 2rem;
+  background: none;
+  padding: 0;
+  border-top: 1px solid #edf0eb;
+  padding-top: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .price-slider-section h3 {
-  font-size: 1.25rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: #9aab85;
   margin-bottom: 2rem;
-  color: var(--text-primary);
-  text-align: center;
+  text-align: left;
 }
 
 .price-slider-container {
@@ -751,26 +952,29 @@ body {
 
 /* Qualification de l'offre */
 .offre-qualification {
-  background: linear-gradient(135deg, #f7fbf2 0%, #eef5e4 100%);
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  border-left: 4px solid var(--primary-dark);
+  border-top: 1px solid #edf0eb;
+  padding-top: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .offre-qualification h3 {
-  font-size: 1.25rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: #9aab85;
   margin-bottom: 0.75rem;
-  color: var(--text-primary);
 }
 
 .offre-qualification p {
   color: var(--text-secondary);
+  font-size: 0.9rem;
   margin: 0;
 }
 
 .offre-qualification strong {
-  color: var(--primary-dark);
+  color: #3d4d3a;
+  font-weight: 600;
 }
 
 /* Responsive */
